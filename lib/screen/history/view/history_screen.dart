@@ -16,7 +16,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   void initState() {
     super.initState();
     controller.getSearchData();
-    print("=======${controller.searchList.length}");
   }
 
   @override
@@ -25,15 +24,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
       appBar: AppBar(
         title: const Text("Your search history"),
       ),
-      body: ListView.builder(
-        itemCount: controller.searchList.length,
-        itemBuilder: (context, index) {
-          return Obx(
-            () => ListTile(
+      backgroundColor: Colors.white,
+      body: Obx(
+        () => ListView.builder(
+          itemCount: controller.searchList.length,
+          itemBuilder: (context, index) {
+            return ListTile(
               title: Text(controller.searchList[index]),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

@@ -1,11 +1,14 @@
+import 'package:avatar_glow/avatar_glow.dart';
 import 'package:cherry_toast/cherry_toast.dart';
 import 'package:cherry_toast/resources/arrays.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:translate_api_app/screen/home/controller/home_controller.dart';
 import 'package:translate_api_app/screen/home/model/home_model.dart';
 import 'package:flutter/services.dart';
+import 'package:translate_api_app/utils/helper/Ads_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,11 +20,20 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   TextEditingController txtTranslate = TextEditingController();
   HomeController controller = Get.put(HomeController());
+  AdsHelper adsHelper = AdsHelper();
 
   @override
   void initState() {
     super.initState();
     controller.getSupportLanguage();
+    adsHelper.loadBanner();
+
+    // adsHelper.loadInter();
+    // adsHelper.loadNative();
+    // adsHelper.loadReward();
+    // adsHelper.loadAppOpen();
+
+    controller.initializedSpeech();
   }
 
   @override
@@ -41,34 +53,24 @@ class _HomeScreenState extends State<HomeScreen> {
             "Translator App",
             style: TextStyle(color: Colors.white),
           ),
-          actions: [
-            IconButton(
-              onPressed: () {
-                Get.toNamed("history");
-              },
-              icon: const Icon(
-                Icons.history,
-                color: Colors.white,
-              ),
-            ),
-            IconButton(
-              onPressed: () {
-                Get.toNamed("fav");
-              },
-              icon: const Icon(
-                Icons.favorite,
-                color: Colors.white,
-              ),
-            ),
-          ],
         ),
         backgroundColor: Colors.white,
         body: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
           child: SingleChildScrollView(
             scrollDirection: Axis.vertical,
             child: Column(
               children: [
+                SizedBox(
+                  height: 100,
+                  width: MediaQuery.sizeOf(context).width,
+                  child: AdWidget(ad: adsHelper.bannerAd!),
+                ),
+                // SizedBox(
+                //   height: 100,
+                //   width: MediaQuery.sizeOf(context).width,
+                //   child: AdWidget(ad: adsHelper.nativeAd!),
+                // ),
                 Container(
                   height: 50,
                   padding: const EdgeInsets.only(
@@ -77,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: const Color(0xffeddef3),
+                    color: const Color(0xfff0e9f6),
                     borderRadius: BorderRadius.circular(50),
                     boxShadow: [
                       BoxShadow(
@@ -158,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.all(16),
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: const Color(0xffeddef3),
+                    color: const Color(0xfff0e9f6),
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
@@ -215,33 +217,50 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      TextFormField(
-                        controller: txtTranslate,
-                        style: const TextStyle(fontSize: 20),
-                        maxLines: 5,
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.zero,
-                          hintText: "Enter text here !!!",
-                          filled: true,
-                          fillColor: Color(0xffeddef3),
-                        ),
-                      ),
+                      controller.speechToText!.isListening
+                          ? Obx(
+                              () => Text(controller.text.value),
+                            )
+                          : TextFormField(
+                              controller: txtTranslate,
+                              style: const TextStyle(fontSize: 20),
+                              maxLines: 5,
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
+                                hintText: "Enter text here !!!",
+                                filled: true,
+                                fillColor: Color(0xfff0e9f6),
+                              ),
+                            ),
                       const SizedBox(
                         height: 10,
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          IconButton.filled(
-                            iconSize: 24,
-                            style: IconButton.styleFrom(
-                              backgroundColor: const Color(0xff003366),
-                            ),
-                            onPressed: () {},
-                            icon: const Icon(
-                              Icons.mic_outlined,
-                              color: Colors.white,
+                          Obx(
+                            () => AvatarGlow(
+                              startDelay: const Duration(milliseconds: 1000),
+                              glowShape: BoxShape.circle,
+                              animate: controller.micOn.value,
+                              glowColor: const Color(0xff003366),
+                              repeat: true,
+                              child: IconButton.filled(
+                                iconSize: 24,
+                                style: IconButton.styleFrom(
+                                  backgroundColor: const Color(0xff003366),
+                                ),
+                                onPressed: () {
+                                  controller.speechToText!.isNotListening
+                                      ? controller.startListen()
+                                      : controller.stopListen();
+                                },
+                                icon: const Icon(
+                                  Icons.mic_outlined,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
                           ),
                           ElevatedButton(
@@ -251,11 +270,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             onPressed: () {
                               if (txtTranslate.text.isNotEmpty) {
                                 controller.translateData(
-                                    text: txtTranslate.text);
+                                    text: controller.speechToText!.isListening
+                                        ? controller.text.value
+                                        : txtTranslate.text);
                                 controller.setSearchData(txtTranslate.text);
                                 FocusManager.instance.primaryFocus!.unfocus();
                               } else {
-                                CherryToast.error(
+                                CherryToast.warning(
                                   animationType: AnimationType.fromTop,
                                   title: const Text("Please enter the"),
                                   action: const Text("Text"),
@@ -292,7 +313,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.all(16),
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: const Color(0xffeddef3),
+                          color: const Color(0xfff0e9f6),
                           borderRadius: BorderRadius.circular(10),
                           boxShadow: [
                             BoxShadow(
@@ -342,11 +363,17 @@ class _HomeScreenState extends State<HomeScreen> {
                               children: [
                                 IconButton(
                                   onPressed: () {
-                                    Clipboard.setData(
-                                      ClipboardData(
-                                          text:
-                                              "${controller.model.value!.model!.translate}"),
-                                    );
+                                    controller.model.value!.model == null
+                                        ? CherryToast.warning(
+                                            title: const Text(
+                                                "Please enter the text"),
+                                            action: const Text("Can't copy"),
+                                          ).show(context)
+                                        : Clipboard.setData(
+                                            ClipboardData(
+                                                text:
+                                                    "${controller.model.value!.model!.translate}"),
+                                          );
                                   },
                                   icon: const Icon(
                                     Icons.copy_rounded,
@@ -356,8 +383,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 IconButton(
                                   onPressed: () {
-                                    Share.share(
-                                        "${controller.model.value!.model!.translate}");
+                                    controller.model.value!.model == null
+                                        ? CherryToast.warning(
+                                            title: const Text(
+                                                "Please enter the text"),
+                                            action: const Text("Can't share"),
+                                          ).show(context)
+                                        : Share.share(
+                                            "${controller.model.value!.model!.translate}");
                                   },
                                   icon: const Icon(
                                     Icons.share,
@@ -367,7 +400,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 IconButton(
                                   onPressed: () {
-                                    controller.setFavouriteData(controller.model.value!.model!.translate!);
+                                    controller.model.value!.model == null
+                                        ? CherryToast.warning(
+                                            title: const Text(
+                                                "Please enter the text"),
+                                          ).show(context)
+                                        : controller.setFavouriteData(controller
+                                            .model.value!.model!.translate!);
                                   },
                                   icon: const Icon(
                                     Icons.star_border,
@@ -403,7 +442,103 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: const CircularProgressIndicator(),
                     );
                   },
-                )
+                ),
+                // ElevatedButton(
+                //   onPressed: () {
+                //     if (adsHelper.interstitialAd != null) {
+                //       adsHelper.interstitialAd!.show();
+                //     }
+                //
+                //     adsHelper.interstitialAd!.fullScreenContentCallback =
+                //         FullScreenContentCallback(
+                //       onAdClicked: (ad) {
+                //         Navigator.push(
+                //           context,
+                //           MaterialPageRoute(
+                //             builder: (context) => const FavouriteScreen(),
+                //           ),
+                //         );
+                //       },
+                //       onAdFailedToShowFullScreenContent: (ad, error) {
+                //         Navigator.push(
+                //           context,
+                //           MaterialPageRoute(
+                //             builder: (context) => const FavouriteScreen(),
+                //           ),
+                //         );
+                //       },
+                //     );
+                //     adsHelper.loadInter();
+                //   },
+                //   child: const Text("Inter"),
+                // ),
+                // ElevatedButton(
+                //   onPressed: () {
+                //     if (adsHelper.rewardedAd != null) {
+                //       adsHelper.rewardedAd!.show(
+                //         onUserEarnedReward: (ad, reward) {
+                //           ScaffoldMessenger.of(context).showSnackBar(
+                //             SnackBar(
+                //               content: Text("${reward.amount}"),
+                //             ),
+                //           );
+                //         },
+                //       );
+                //     }
+                //
+                //     adsHelper.rewardedAd!.fullScreenContentCallback =
+                //         FullScreenContentCallback(
+                //       onAdClicked: (ad) {
+                //         Navigator.push(
+                //           context,
+                //           MaterialPageRoute(
+                //             builder: (context) => const FavouriteScreen(),
+                //           ),
+                //         );
+                //       },
+                //       onAdFailedToShowFullScreenContent: (ad, error) {
+                //         Navigator.push(
+                //           context,
+                //           MaterialPageRoute(
+                //             builder: (context) => const FavouriteScreen(),
+                //           ),
+                //         );
+                //       },
+                //     );
+                //
+                //     adsHelper.loadReward();
+                //   },
+                //   child: const Text("Reward"),
+                // ),
+                // ElevatedButton(
+                //   onPressed: () {
+                //     if (adsHelper.appOpenAd != null) {
+                //       adsHelper.appOpenAd!.show();
+                //     }
+                //
+                //     adsHelper.appOpenAd!.fullScreenContentCallback =
+                //         FullScreenContentCallback(
+                //       onAdClicked: (ad) {
+                //         Navigator.push(
+                //           context,
+                //           MaterialPageRoute(
+                //             builder: (context) => const FavouriteScreen(),
+                //           ),
+                //         );
+                //       },
+                //       onAdFailedToShowFullScreenContent: (ad, error) {
+                //         Navigator.push(
+                //           context,
+                //           MaterialPageRoute(
+                //             builder: (context) => const FavouriteScreen(),
+                //           ),
+                //         );
+                //       },
+                //     );
+                //     adsHelper.loadAppOpen();
+                //   },
+                //   child: const Text("App open"),
+                // ),
               ],
             ),
           ),
@@ -414,6 +549,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void sourceSheet(GetData model) {
     showModalBottomSheet(
+      backgroundColor: const Color(0xffeddef3),
       context: context,
       builder: (context) {
         return GridView.builder(
@@ -433,7 +569,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 margin: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(5),
-                  color: const Color(0xff80BCFA),
+                  color: const Color(0xff245e9e),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.shade600,
@@ -445,7 +581,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Text(
                   "${model.model!.model![index].name}",
                   style: const TextStyle(
-                    color: Colors.black,
+                    color: Colors.white,
                     fontWeight: FontWeight.w600,
                     fontSize: 15,
                   ),
@@ -461,6 +597,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void targetSheet(GetData model) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: const Color(0xffeddef3),
       builder: (context) {
         return GridView.builder(
           itemCount: model.model!.model!.length,
@@ -479,7 +616,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 margin: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(5),
-                  color: const Color(0xff80BCFA),
+                  color: const Color(0xff245e9e),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.shade600,
@@ -491,7 +628,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Text(
                   "${model.model!.model![index].name}",
                   style: const TextStyle(
-                    color: Colors.black,
+                    color: Colors.white,
                     fontWeight: FontWeight.w600,
                     fontSize: 15,
                   ),

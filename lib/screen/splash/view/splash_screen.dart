@@ -19,7 +19,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(
       const Duration(seconds: 4),
       () {
-        Get.offNamed('home');
+        Get.offNamed('bottom');
       },
     );
   }
@@ -66,14 +66,17 @@ class _SplashScreenState extends State<SplashScreen> {
                     fontSize: 20,
                   ),
                 ),
-                LoadingAnimationWidget.flickr(
-                  leftDotColor: const Color(0Xff6E93B6),
-                  rightDotColor: const Color(0xffBDE0E6),
-                  size: 40,
-                ),
               ],
             ),
-          )
+          ),
+          Align(
+            alignment: const Alignment(0, 0.8),
+            child: LoadingAnimationWidget.flickr(
+              leftDotColor: const Color(0Xff6E93B6),
+              rightDotColor: const Color(0xffBDE0E6),
+              size: 50,
+            ),
+          ),
         ],
       ),
     );

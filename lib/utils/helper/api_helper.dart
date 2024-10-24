@@ -8,9 +8,9 @@ class ApiHelper {
 
   ApiHelper._();
 
-  Future<TranslateModel?> postApi({String? source, String? target,String? text}) async {
-    String translateLink =
-        "https://text-translator2.p.rapidapi.com/translate";
+  Future<TranslateModel?> postApi(
+      {String? source, String? target, String? text}) async {
+    String translateLink = "https://text-translator2.p.rapidapi.com/translate";
 
     var response = await http.post(Uri.parse(translateLink), headers: {
       "x-rapidapi-host": "text-translator2.p.rapidapi.com",
@@ -30,7 +30,7 @@ class ApiHelper {
   }
 
   Future<GetData?> getAApi() async {
-    String link =  "https://text-translator2.p.rapidapi.com/getLanguages";
+    String link = "https://text-translator2.p.rapidapi.com/getLanguages";
     var response = await http.get(Uri.parse(link), headers: {
       "x-rapidapi-host": "text-translator2.p.rapidapi.com",
       "x-rapidapi-key": "fe6e9f38fbmsh2178b2569ba87bbp1f23f5jsnef8e7376e3a9",

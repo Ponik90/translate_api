@@ -17,7 +17,6 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
   void initState() {
     super.initState();
     controller.getFavouriteData();
-
   }
 
   @override
@@ -26,15 +25,16 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
       appBar: AppBar(
         title: const Text("Favourite Translate"),
       ),
-      body: ListView.builder(
-        itemCount: controller.favouriteList.length,
-        itemBuilder: (context, index) {
-          return Obx(
-            () => ListTile(
+      backgroundColor: Colors.white,
+      body: Obx(
+        () => ListView.builder(
+          itemCount: controller.favouriteList.length,
+          itemBuilder: (context, index) {
+            return ListTile(
               title: Text(controller.favouriteList[index]),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

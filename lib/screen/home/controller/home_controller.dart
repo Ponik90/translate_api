@@ -1,9 +1,11 @@
 import 'package:get/get.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:translate_api_app/screen/home/model/home_model.dart';
 import 'package:translate_api_app/utils/helper/api_helper.dart';
 import 'package:translate_api_app/utils/helper/shared_helper.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
-class HomeController {
+class HomeController extends GetxController {
   Rx<TranslateModel?> model = TranslateModel().obs;
   Future<GetData?>? dataList;
   RxnString selectSource = RxnString("en");
@@ -12,6 +14,11 @@ class HomeController {
   RxInt targetIndex = 37.obs;
   RxList<String> searchList = <String>[].obs;
   RxList<String> favouriteList = <String>[].obs;
+  stt.SpeechToText? speechToText = stt.SpeechToText();
+
+  RxBool listen = false.obs;
+  RxBool micOn = false.obs;
+  RxString text = "".obs;
 
   Future<void> translateData({String? text}) async {
     model.value = await ApiHelper.apiHelper.postApi(
@@ -61,5 +68,33 @@ class HomeController {
     if (list != null) {
       favouriteList.value = list;
     }
+  }
+
+  Future<void> initializedSpeech() async {
+    listen.value = await speechToText!.initialize();
+  }
+
+  Future<void> startListen() async {
+    await speechToText!.listen(
+      onResult: (result) {
+        text.value = result.recognizedWords;
+      },
+    );
+    print("========4=======${micOn.value}");
+    print("===========5========${text.value}");
+    micOn.value = true;
+  }
+
+  // void speechResult(SpeechRecognitionResult result) {
+  //   text.value = result.recognizedWords;
+  //
+  //   print("========4=======${micOn.value}");
+  //   print("===========5========${text.value}");
+  // }
+
+  Future<void> stopListen() async {
+    await speechToText!.stop();
+    micOn.value = false;
+    print("========6=======${micOn.value}");
   }
 }
