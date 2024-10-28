@@ -29,9 +29,10 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          const Align(
-            alignment: Alignment(-5, -1.5),
-            child: Opacity(
+          Positioned(
+            left: MediaQuery.sizeOf(context).width / -4.5,
+            bottom: MediaQuery.sizeOf(context).height / 1.4,
+            child: const Opacity(
               opacity: 0.5,
               child: CircleAvatar(
                 radius: 200,
@@ -39,9 +40,10 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
           ),
-          const Align(
-            alignment: Alignment(7, -1.7),
-            child: Opacity(
+          Positioned(
+            left: MediaQuery.sizeOf(context).width / 2.5,
+            bottom: MediaQuery.sizeOf(context).height / 1.3,
+            child: const Opacity(
               opacity: 0.5,
               child: CircleAvatar(
                 radius: 200,

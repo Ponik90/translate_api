@@ -1,5 +1,5 @@
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:get/get.dart';
-import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:translate_api_app/screen/home/model/home_model.dart';
 import 'package:translate_api_app/utils/helper/api_helper.dart';
 import 'package:translate_api_app/utils/helper/shared_helper.dart';
@@ -14,11 +14,6 @@ class HomeController extends GetxController {
   RxInt targetIndex = 37.obs;
   RxList<String> searchList = <String>[].obs;
   RxList<String> favouriteList = <String>[].obs;
-  stt.SpeechToText? speechToText = stt.SpeechToText();
-
-  RxBool listen = false.obs;
-  RxBool micOn = false.obs;
-  RxString text = "".obs;
 
   Future<void> translateData({String? text}) async {
     model.value = await ApiHelper.apiHelper.postApi(
@@ -29,6 +24,7 @@ class HomeController extends GetxController {
     dataList = ApiHelper.apiHelper.getAApi();
   }
 
+  //shared preference method for show history
   Future<void> setSearchData(String search) async {
     List<String>? data = await SharedHelper.sharedHelper.getHistory();
 
@@ -50,6 +46,7 @@ class HomeController extends GetxController {
     }
   }
 
+  //shared preference method for save as favorite
   Future<void> setFavouriteData(String fav) async {
     List<String>? data = await SharedHelper.sharedHelper.getFavourite();
     if (data != null) {
@@ -70,6 +67,12 @@ class HomeController extends GetxController {
     }
   }
 
+  //Speech to text code
+  stt.SpeechToText? speechToText = stt.SpeechToText();
+  RxBool listen = false.obs;
+  RxBool micOn = false.obs;
+  RxString text = "".obs;
+
   Future<void> initializedSpeech() async {
     listen.value = await speechToText!.initialize();
   }
@@ -78,23 +81,41 @@ class HomeController extends GetxController {
     await speechToText!.listen(
       onResult: (result) {
         text.value = result.recognizedWords;
+        print("========4=======${micOn.value}");
+        print("===========5========${text.value}");
       },
     );
-    print("========4=======${micOn.value}");
-    print("===========5========${text.value}");
+
     micOn.value = true;
   }
-
-  // void speechResult(SpeechRecognitionResult result) {
-  //   text.value = result.recognizedWords;
-  //
-  //   print("========4=======${micOn.value}");
-  //   print("===========5========${text.value}");
-  // }
 
   Future<void> stopListen() async {
     await speechToText!.stop();
     micOn.value = false;
     print("========6=======${micOn.value}");
+  }
+
+  //text to speech code
+
+  FlutterTts flutterTts = FlutterTts();
+  Rxn<Map> currentVoice = Rxn();
+
+  void initializedText() {
+    flutterTts.getVoices.then(
+      (value) {
+        List<Map> _voices = List<Map>.from(value);
+        _voices =
+            _voices.where((_voices) => _voices['name'].contains('en')).toList();
+        currentVoice.value = _voices.first;
+        setVoices(currentVoice.value!);
+      },
+    );
+  }
+
+  void setVoices(Map value) {
+    flutterTts.setVoice({
+      "name": value["name"],
+      "locale": value["locale"],
+    });
   }
 }

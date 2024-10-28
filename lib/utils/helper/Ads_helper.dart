@@ -76,9 +76,7 @@ class AdsHelper {
         onAdLoaded: (ad) {
           print("==========${ad.responseInfo}");
         },
-        onAdFailedToLoad: (ad, error) {
-
-        },
+        onAdFailedToLoad: (ad, error) {},
       ),
       request: const AdRequest(),
       nativeTemplateStyle: NativeTemplateStyle(

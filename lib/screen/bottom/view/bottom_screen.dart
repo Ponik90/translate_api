@@ -6,6 +6,7 @@ import 'package:translate_api_app/screen/bottom/controller/bottom_controller.dar
 import 'package:translate_api_app/screen/favourite/view/favourite_screen.dart';
 import 'package:translate_api_app/screen/history/view/history_screen.dart';
 import 'package:translate_api_app/screen/home/view/home_screen.dart';
+import 'package:translate_api_app/utils/helper/connectivity_helper.dart';
 
 class BottomScreen extends StatefulWidget {
   const BottomScreen({super.key});
@@ -37,23 +38,44 @@ class _BottomScreenState extends State<BottomScreen>
   @override
   Widget build(BuildContext context) {
     return Obx(
-      () => Scaffold(
-        body: screen[controller.selectIndex.value],
-        bottomNavigationBar: MotionTabBar(
-          initialSelectedTab: "Translate",
-          labels: const ["Translate", "History", "Favourite"],
-          icons: const [Icons.translate, Icons.history, Icons.star_border],
-          tabSize: 50,
-          tabBarHeight: 55,
-          onTabItemSelected: (value) {
-            controller.selectIndex.value = value;
-          },
-          tabBarColor: const Color(0xfff0e9f6),
-          tabIconSelectedColor: Colors.white,
-          tabSelectedColor: const Color(0xff003366),
-
-        ),
-      ),
+      () => ConnectivityHelper.connectivityHelper.check.value
+          ? Scaffold(
+              body: screen[controller.selectIndex.value],
+              bottomNavigationBar: MotionTabBar(
+                initialSelectedTab: "Translate",
+                labels: const ["Translate", "History", "Favourite"],
+                icons: const [
+                  Icons.translate,
+                  Icons.history,
+                  Icons.star_border
+                ],
+                tabSize: 50,
+                tabBarHeight: 55,
+                onTabItemSelected: (value) {
+                  controller.selectIndex.value = value;
+                },
+                tabBarColor: const Color(0xfff0e9f6),
+                tabIconSelectedColor: Colors.white,
+                tabSelectedColor: const Color(0xff003366),
+              ),
+            )
+          : Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset("assets/image/no_wifi.png"),
+                    const Text(
+                      "Check Internet",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w400
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
     );
   }
 

@@ -34,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // adsHelper.loadAppOpen();
 
     controller.initializedSpeech();
+    controller.initializedText();
   }
 
   @override
@@ -66,11 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: MediaQuery.sizeOf(context).width,
                   child: AdWidget(ad: adsHelper.bannerAd!),
                 ),
-                // SizedBox(
-                //   height: 100,
-                //   width: MediaQuery.sizeOf(context).width,
-                //   child: AdWidget(ad: adsHelper.nativeAd!),
-                // ),
+
                 Container(
                   height: 50,
                   padding: const EdgeInsets.only(
@@ -199,10 +196,23 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(
                             width: 10,
                           ),
-                          const Icon(
-                            Icons.volume_up_outlined,
-                            size: 30,
-                            color: Color(0xff003366),
+                          IconButton(
+                            onPressed: () {
+                              txtTranslate.text.isEmpty
+                                  ? CherryToast.warning(
+                                      title:
+                                          const Text("Please enter the text"),
+                                      action: const Text("Can't copy"),
+                                    ).show(context)
+                                  : controller.flutterTts.speak(
+                                      txtTranslate.text,
+                                    );
+                            },
+                            icon: const Icon(
+                              Icons.volume_up_outlined,
+                              size: 30,
+                              color: Color(0xff003366),
+                            ),
                           ),
                           const Spacer(),
                           IconButton(
@@ -217,22 +227,24 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      controller.speechToText!.isListening
-                          ? Obx(
-                              () => Text(controller.text.value),
-                            )
-                          : TextFormField(
-                              controller: txtTranslate,
-                              style: const TextStyle(fontSize: 20),
-                              maxLines: 5,
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                                contentPadding: EdgeInsets.zero,
-                                hintText: "Enter text here !!!",
-                                filled: true,
-                                fillColor: Color(0xfff0e9f6),
-                              ),
+                      Obx(
+                        () {
+                          txtTranslate.text = controller.text.value;
+
+                          return TextFormField(
+                            controller: txtTranslate,
+                            style: const TextStyle(fontSize: 20),
+                            maxLines: 5,
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                              hintText: "Enter text here !!!",
+                              filled: true,
+                              fillColor: Color(0xfff0e9f6),
                             ),
+                          );
+                        },
+                      ),
                       const SizedBox(
                         height: 10,
                       ),
@@ -242,6 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Obx(
                             () => AvatarGlow(
                               startDelay: const Duration(milliseconds: 1000),
+                              
                               glowShape: BoxShape.circle,
                               animate: controller.micOn.value,
                               glowColor: const Color(0xff003366),
@@ -270,9 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             onPressed: () {
                               if (txtTranslate.text.isNotEmpty) {
                                 controller.translateData(
-                                    text: controller.speechToText!.isListening
-                                        ? controller.text.value
-                                        : txtTranslate.text);
+                                    text: txtTranslate.text);
                                 controller.setSearchData(txtTranslate.text);
                                 FocusManager.instance.primaryFocus!.unfocus();
                               } else {
